@@ -8,13 +8,43 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MINI_APP_URL = process.env.MINI_APP_URL || `http://localhost:${PORT}`;
 
-// Middleware to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Cache for currency rates to prevent API rate limiting
+// Cache for currency rates
 let ratesCache = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+async function fetchCBRRates() {
+  const response = await axios.get('https://www.cbr.ru/scripts/XML_daily.asp', {
+    responseType: 'text',
+    timeout: 10000,
+    headers: { 'Accept-Charset': 'windows-1251' },
+  });
+
+  const xml = response.data;
+  
+  function parseValute(charCode) {
+    const re = new RegExp(
+      `<CharCode>${charCode}<\\/CharCode>[\\s\\S]*?<Nominal>(\\d+)<\\/Nominal>[\\s\\S]*?<Value>([\\d,]+)<\\/Value>`
+    );
+    const match = xml.match(re);
+    if (!match) throw new Error(`Failed to parse ${charCode} from CBR XML`);
+    const nominal = parseInt(match[1], 10);
+    const value = parseFloat(match[2].replace(',', '.'));
+    return value / nominal;
+  }
+
+  const rubPerUsd = parseValute('USD');
+  const rubPerAmd = parseValute('AMD');
+  const amdPerUsd = rubPerUsd / rubPerAmd;
+
+  return {
+    USD: 1,
+    RUB: parseFloat(rubPerUsd.toFixed(4)),
+    AMD: parseFloat(amdPerUsd.toFixed(2)),
+  };
+}
 
 async function getRates() {
   const now = Date.now();
@@ -22,23 +52,15 @@ async function getRates() {
     return ratesCache;
   }
 
-  console.log('Fetching fresh exchange rates...');
+  console.log('Fetching fresh exchange rates from CBR...');
   try {
-    const response = await axios.get('https://open.er-api.com/v6/latest/USD');
-    if (response.data && response.data.result === 'success') {
-      ratesCache = {
-        rates: {
-          USD: response.data.rates.USD,
-          RUB: response.data.rates.RUB,
-          AMD: response.data.rates.AMD
-        },
-        time_last_update_utc: response.data.time_last_update_utc
-      };
-      lastFetchTime = now;
-      return ratesCache;
-    } else {
-      throw new Error('Failed to get success status from ExchangeRate API');
-    }
+    const rates = await fetchCBRRates();
+    ratesCache = {
+      rates,
+      time_last_update_utc: new Date().toUTCString()
+    };
+    lastFetchTime = now;
+    return ratesCache;
   } catch (error) {
     console.error('Error fetching currency rates:', error.message);
     if (ratesCache) {
@@ -81,12 +103,10 @@ if (!botToken || botToken === 'YOUR_BOT_TOKEN_HERE') {
     const userName = ctx.from.first_name || 'друг';
     const welcomeText = `Привет, ${userName}! 👋\n\nДобро пожаловать в **Конвертер валют**!\n\nНажмите на кнопку ниже, чтобы открыть Telegram Mini App с удобным и современным интерфейсом для перевода между USD, RUB и AMD в реальном времени.`;
 
-    // Send a message with an Inline Button to launch the Web App
     const inlineKeyboard = Markup.inlineKeyboard([
       Markup.button.webApp('💰 Открыть Конвертер', MINI_APP_URL)
     ]);
 
-    // Send a message with a Reply Keyboard (which stays as a persistent button)
     const replyKeyboard = Markup.keyboard([
       [Markup.button.webApp('💰 Открыть Конвертер', MINI_APP_URL)]
     ]).resize();
@@ -107,7 +127,6 @@ if (!botToken || botToken === 'YOUR_BOT_TOKEN_HERE') {
       console.error('❌ Failed to start Telegram Bot:', err.message);
     });
 
-  // Enable graceful stop
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
 }
