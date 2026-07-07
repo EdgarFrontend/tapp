@@ -5,9 +5,10 @@ frontend/node_modules/
 # Environment variables (contains secrets!)
 .env
 
-# Build output
+# Build output (Render will build this automatically)
 frontend/dist/
 frontend/build/
+public/assets/
 
 # macOS
 .DS_Store
