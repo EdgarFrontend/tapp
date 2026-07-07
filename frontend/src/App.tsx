@@ -5,6 +5,7 @@ import { RatesGrid } from './components/RatesGrid/RatesGrid';
 import { CurrencyCard } from './components/CurrencyCard/CurrencyCard';
 import { PresetsList } from './components/PresetsList/PresetsList';
 import { Footer } from './components/Footer/Footer';
+import { Tabs } from './components/Tabs/Tabs';
 import { Toast, type ToastType } from './components/Toast/Toast';
 
 import './App.css';
@@ -15,11 +16,24 @@ interface Rates {
   AMD: number;
 }
 
+// Spread: sell = -1.5% (you sell cheaper), buy = +1.5% (you buy more expensive)
+const SELL_SPREAD = 0.985;
+const BUY_SPREAD  = 1.015;
+
 const INITIAL_RATES: Rates = {
   USD: 1.0,
   RUB: 91.50,
   AMD: 388.00
 };
+
+function applySpread(rates: Rates, tab: 'sell' | 'buy'): Rates {
+  const factor = tab === 'sell' ? SELL_SPREAD : BUY_SPREAD;
+  return {
+    USD: rates.USD,                  // base stays 1
+    RUB: rates.RUB * factor,
+    AMD: rates.AMD * factor,
+  };
+}
 
 export default function App() {
   const { 
@@ -30,9 +44,15 @@ export default function App() {
     expand, 
   } = useTelegram();
 
-  // Exchange rates state
-  const [rates, setRates] = useState<Rates>(INITIAL_RATES);
-  
+  // Active tab: sell or buy
+  const [activeTab, setActiveTab] = useState<'sell' | 'buy'>('sell');
+
+  // Raw mid-market rates from API
+  const [marketRates, setMarketRates] = useState<Rates>(INITIAL_RATES);
+
+  // Effective rates with spread applied
+  const effectiveRates = applySpread(marketRates, activeTab);
+
   // Inputs state
   const [inputs, setInputs] = useState<{ USD: string; RUB: string; AMD: string }>({
     USD: '100',
@@ -56,6 +76,16 @@ export default function App() {
   useEffect(() => {
     activeInputRef.current = activeInput;
   }, [activeInput]);
+
+  // Recalculate when tab changes
+  useEffect(() => {
+    const newRates = applySpread(marketRates, activeTab);
+    setInputs(prev => {
+      const currentActive = activeInputRef.current;
+      const currentVal = prev[currentActive];
+      return calculateConversion(currentActive, currentVal, newRates);
+    });
+  }, [activeTab]);
 
   const addToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = Date.now().toString();
@@ -97,7 +127,6 @@ export default function App() {
       if (currency !== sourceCurrency) {
         const converted = usdAmount * currentRates[currency];
         if (currency === 'AMD') {
-          // AMD is usually represented as integer or single decimal because of low value
           result[currency] = converted.toFixed(1);
         } else {
           result[currency] = converted.toFixed(2);
@@ -110,7 +139,7 @@ export default function App() {
 
   // Run conversion inside React state
   const handleInputChange = (currency: 'USD' | 'RUB' | 'AMD', valueStr: string) => {
-    const nextInputs = calculateConversion(currency, valueStr, rates);
+    const nextInputs = calculateConversion(currency, valueStr, effectiveRates);
     setInputs(nextInputs);
   };
 
@@ -122,19 +151,20 @@ export default function App() {
       
       const data = await response.json();
       if (data.success && data.rates) {
-        const newRates = data.rates;
-        setRates(newRates);
+        const newMarketRates = data.rates;
+        setMarketRates(newMarketRates);
         setIsOffline(false);
         
         const now = new Date();
         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         setSyncTime(timeStr);
 
-        // Recalculate values with the new rates based on current inputs
+        // Recalculate with new rates + current spread
         setInputs(prev => {
           const currentActive = activeInputRef.current;
           const currentVal = prev[currentActive];
-          return calculateConversion(currentActive, currentVal, newRates);
+          const newEffective = applySpread(newMarketRates, activeTab);
+          return calculateConversion(currentActive, currentVal, newEffective);
         });
 
         if (showSuccessToast) {
@@ -150,11 +180,10 @@ export default function App() {
       addToast('Не удалось загрузить свежие курсы', 'error');
       triggerNotificationFeedback('error');
 
-      // Sync fallback/stale conversion using current state rates
       setInputs(prev => {
         const currentActive = activeInputRef.current;
         const currentVal = prev[currentActive];
-        return calculateConversion(currentActive, currentVal, rates);
+        return calculateConversion(currentActive, currentVal, effectiveRates);
       });
     } finally {
       setIsRefreshing(false);
@@ -166,7 +195,7 @@ export default function App() {
     triggerHaptic('medium');
     setActiveInput(currency);
     const valueStr = value.toString();
-    setInputs(calculateConversion(currency, valueStr, rates));
+    setInputs(calculateConversion(currency, valueStr, effectiveRates));
   };
 
   // Manual refresh trigger
@@ -175,13 +204,20 @@ export default function App() {
     fetchRates(true);
   };
 
+  // Tab switch handler
+  const handleTabChange = (tab: 'sell' | 'buy') => {
+    if (tab !== activeTab) {
+      triggerHaptic('light');
+      setActiveTab(tab);
+    }
+  };
+
   // Initialize Telegram SDK theme on load
   useEffect(() => {
     if (tg) {
       tg.ready();
       expand();
       
-      // Add classes for TG web view styling
       document.body.classList.add('telegram-theme');
       
       if (tg.setHeaderColor) {
@@ -196,11 +232,8 @@ export default function App() {
       }
     }
 
-    // Initial rates loading
     fetchRates(false);
-
-    // Initial default calculation (100 USD)
-    setInputs(calculateConversion('USD', '100', INITIAL_RATES));
+    setInputs(calculateConversion('USD', '100', applySpread(INITIAL_RATES, 'sell')));
   }, []);
 
   return (
@@ -209,7 +242,10 @@ export default function App() {
       <Header userName={user?.first_name} />
 
       {/* Modern Rates Cards */}
-      <RatesGrid rates={rates} />
+      <RatesGrid rates={effectiveRates} />
+
+      {/* Sell / Buy Tab Switcher */}
+      <Tabs activeTab={activeTab} onChange={handleTabChange} />
 
       {/* Main Converter Form Cards */}
       <section className="converter-container">
