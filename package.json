@@ -1,0 +1,28 @@
+{
+  "name": "telegram-mini-app-currency-converter",
+  "version": "1.0.0",
+  "description": "Telegram Mini App for converting currency (USD, RUB, AMD) in real-time.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build:frontend": "cd frontend && npm run build",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend"
+  },
+  "keywords": [
+    "telegram",
+    "mini-app",
+    "tma",
+    "currency",
+    "converter"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "telegraf": "^4.16.3"
+  }
+}

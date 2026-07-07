@@ -1,0 +1,122 @@
+.footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+.syncContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.syncInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.syncDot {
+  width: 8px;
+  height: 8px;
+  background-color: rgb(16, 185, 129);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.offline {
+  background-color: rgb(239, 68, 68) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6) !important;
+}
+
+.syncing {
+  background-color: var(--color-accent) !important;
+  box-shadow: 0 0 6px rgba(var(--color-accent-rgb), 0.6) !important;
+  animation: pulseDot 1s infinite alternate;
+}
+
+.syncText {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.refreshBtn {
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.3);
+  background: var(--color-glass-bg-hover);
+}
+
+.refreshBtn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refreshIcon {
+  transition: transform 0.2s ease;
+}
+
+.spinning .refreshIcon {
+  animation: spin 1s linear infinite;
+}
+
+.versionInfo {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  text-align: center;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseDot {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
