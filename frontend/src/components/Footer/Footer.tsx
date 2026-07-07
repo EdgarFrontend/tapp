@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({
         </button>
       </div>
       <div className={styles.versionInfo}>
-        v1.1.0 • React & TypeScript Powered
+        Курсы по данным СберБанка
       </div>
     </footer>
   );
