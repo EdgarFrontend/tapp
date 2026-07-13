@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ userName }) => {
         </div>
       </div>
       <p className={styles.subtitle}>
-        {userName ? `Привет, ${userName}! ` : ''}Быстрый обмен USD, RUB и AMD
+        {userName ? `Привет, ${userName}! ` : ''}Быстрый обмен USD, RUB, AMD и UAH
       </p>
     </header>
   );
