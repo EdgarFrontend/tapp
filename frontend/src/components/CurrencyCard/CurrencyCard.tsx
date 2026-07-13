@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './CurrencyCard.module.css';
 
 interface CurrencyCardProps {
-  code: 'USD' | 'RUB' | 'AMD';
+  code: 'USD' | 'RUB' | 'AMD' | 'UAH';
   name: string;
   symbol: string;
   flag: string;
