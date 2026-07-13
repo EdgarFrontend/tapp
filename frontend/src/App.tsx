@@ -14,6 +14,7 @@ interface Rates {
   USD: number;
   RUB: number;
   AMD: number;
+  UAH: number;
 }
 
 // Spread: sell = -1.5% (you sell cheaper), buy = +1.5% (you buy more expensive)
@@ -23,7 +24,8 @@ const BUY_SPREAD  = 1.015;
 const INITIAL_RATES: Rates = {
   USD: 1.0,
   RUB: 91.50,
-  AMD: 388.00
+  AMD: 388.00,
+  UAH: 41.50
 };
 
 function applySpread(rates: Rates, tab: 'sell' | 'buy'): Rates {
@@ -32,6 +34,7 @@ function applySpread(rates: Rates, tab: 'sell' | 'buy'): Rates {
     USD: rates.USD,                  // base stays 1
     RUB: rates.RUB * factor,
     AMD: rates.AMD * factor,
+    UAH: rates.UAH * factor,
   };
 }
 
@@ -54,15 +57,16 @@ export default function App() {
   const effectiveRates = applySpread(marketRates, activeTab);
 
   // Inputs state
-  const [inputs, setInputs] = useState<{ USD: string; RUB: string; AMD: string }>({
+  const [inputs, setInputs] = useState<{ USD: string; RUB: string; AMD: string; UAH: string }>({
     USD: '100',
     RUB: '',
     AMD: '',
+    UAH: '',
   });
 
   // Track currently focused/active currency card for styling & conversions
-  const [activeInput, setActiveInput] = useState<'USD' | 'RUB' | 'AMD'>('USD');
-  const activeInputRef = useRef<'USD' | 'RUB' | 'AMD'>('USD');
+  const [activeInput, setActiveInput] = useState<'USD' | 'RUB' | 'AMD' | 'UAH'>('USD');
+  const activeInputRef = useRef<'USD' | 'RUB' | 'AMD' | 'UAH'>('USD');
 
   // Sync state
   const [syncTime, setSyncTime] = useState<string>('');
@@ -98,7 +102,7 @@ export default function App() {
 
   // Convert function using provided rates
   const calculateConversion = (
-    sourceCurrency: 'USD' | 'RUB' | 'AMD',
+    sourceCurrency: 'USD' | 'RUB' | 'AMD' | 'UAH',
     valueStr: string,
     currentRates: Rates
   ) => {
@@ -109,6 +113,7 @@ export default function App() {
         USD: sourceCurrency === 'USD' ? valueStr : '',
         RUB: sourceCurrency === 'RUB' ? valueStr : '',
         AMD: sourceCurrency === 'AMD' ? valueStr : '',
+        UAH: sourceCurrency === 'UAH' ? valueStr : '',
       };
     }
 
@@ -119,11 +124,12 @@ export default function App() {
       USD: '',
       RUB: '',
       AMD: '',
+      UAH: '',
     };
     result[sourceCurrency] = valueStr;
 
     // Convert USD base to other currencies
-    (Object.keys(currentRates) as Array<'USD' | 'RUB' | 'AMD'>).forEach(currency => {
+    (Object.keys(currentRates) as Array<'USD' | 'RUB' | 'AMD' | 'UAH'>).forEach(currency => {
       if (currency !== sourceCurrency) {
         const converted = usdAmount * currentRates[currency];
         if (currency === 'AMD') {
@@ -138,7 +144,7 @@ export default function App() {
   };
 
   // Run conversion inside React state
-  const handleInputChange = (currency: 'USD' | 'RUB' | 'AMD', valueStr: string) => {
+  const handleInputChange = (currency: 'USD' | 'RUB' | 'AMD' | 'UAH', valueStr: string) => {
     const nextInputs = calculateConversion(currency, valueStr, effectiveRates);
     setInputs(nextInputs);
   };
@@ -191,7 +197,7 @@ export default function App() {
   };
 
   // Preset button selection
-  const handlePresetSelect = (currency: 'USD' | 'RUB' | 'AMD', value: number) => {
+  const handlePresetSelect = (currency: 'USD' | 'RUB' | 'AMD' | 'UAH', value: number) => {
     triggerHaptic('medium');
     setActiveInput(currency);
     const valueStr = value.toString();
@@ -293,6 +299,22 @@ export default function App() {
             if (activeInput !== 'AMD') {
               triggerHaptic('light');
               setActiveInput('AMD');
+            }
+          }}
+        />
+
+        <CurrencyCard
+          code="UAH"
+          name="Украинская гривна"
+          symbol="₴"
+          flag="🇺🇦"
+          value={inputs.UAH}
+          onChange={(val) => handleInputChange('UAH', val)}
+          isActive={activeInput === 'UAH'}
+          onFocus={() => {
+            if (activeInput !== 'UAH') {
+              triggerHaptic('light');
+              setActiveInput('UAH');
             }
           }}
         />

@@ -2,13 +2,13 @@ import React from 'react';
 import styles from './PresetsList.module.css';
 
 interface Preset {
-  currency: 'USD' | 'RUB' | 'AMD';
+  currency: 'USD' | 'RUB' | 'AMD' | 'UAH';
   value: number;
   label: string;
 }
 
 interface PresetsListProps {
-  onPresetSelect: (currency: 'USD' | 'RUB' | 'AMD', value: number) => void;
+  onPresetSelect: (currency: 'USD' | 'RUB' | 'AMD' | 'UAH', value: number) => void;
 }
 
 const PRESETS: Preset[] = [
@@ -18,6 +18,8 @@ const PRESETS: Preset[] = [
   { currency: 'RUB', value: 15000, label: '15k ₽' },
   { currency: 'AMD', value: 10000, label: '10k ֏' },
   { currency: 'AMD', value: 50000, label: '50k ֏' },
+  { currency: 'UAH', value: 1000, label: '1k ₴' },
+  { currency: 'UAH', value: 5000, label: '5k ₴' },
 ];
 
 export const PresetsList: React.FC<PresetsListProps> = ({ onPresetSelect }) => {

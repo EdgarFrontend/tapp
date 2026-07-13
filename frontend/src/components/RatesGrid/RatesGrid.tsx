@@ -5,6 +5,7 @@ interface Rates {
   USD: number;
   RUB: number;
   AMD: number;
+  UAH: number;
 }
 
 interface RatesGridProps {
@@ -15,6 +16,7 @@ export const RatesGrid: React.FC<RatesGridProps> = ({ rates }) => {
   // Compute pair conversion values
   const usdRub = rates.RUB / rates.USD;
   const usdAmd = rates.AMD / rates.USD;
+  const usdUah = rates.UAH / rates.USD;
   const rubAmd = rates.AMD / rates.RUB;
 
   return (
@@ -30,6 +32,12 @@ export const RatesGrid: React.FC<RatesGridProps> = ({ rates }) => {
           <span className={styles.pair}>USD ➡️ AMD</span>
           <span className={styles.value}>
             {usdAmd ? `${usdAmd.toFixed(1)} ֏` : '--.-- ֏'}
+          </span>
+        </div>
+        <div className={styles.card}>
+          <span className={styles.pair}>USD ➡️ UAH</span>
+          <span className={styles.value}>
+            {usdUah ? `${usdUah.toFixed(2)} ₴` : '--.-- ₴'}
           </span>
         </div>
         <div className={styles.card}>

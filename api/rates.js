@@ -18,6 +18,7 @@ async function getRates() {
         USD: response.data.rates.USD,
         RUB: response.data.rates.RUB,
         AMD: response.data.rates.AMD,
+        UAH: response.data.rates.UAH,
       },
       time_last_update_utc: response.data.time_last_update_utc,
     };
