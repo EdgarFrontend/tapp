@@ -19,7 +19,7 @@ interface Rates {
 
 // Spread: sell = -1.5% (you sell cheaper), buy = +1.5% (you buy more expensive)
 const SELL_SPREAD = 0.985;
-const BUY_SPREAD  = 1.015;
+const BUY_SPREAD = 1.015;
 
 const INITIAL_RATES: Rates = {
   USD: 1.0,
@@ -39,12 +39,12 @@ function applySpread(rates: Rates, tab: 'sell' | 'buy'): Rates {
 }
 
 export default function App() {
-  const { 
-    tg, 
-    user, 
-    triggerHaptic, 
+  const {
+    tg,
+    user,
+    triggerHaptic,
     triggerNotificationFeedback,
-    expand, 
+    expand,
   } = useTelegram();
 
   // Active tab: sell or buy
@@ -72,7 +72,7 @@ export default function App() {
   const [syncTime, setSyncTime] = useState<string>('');
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  
+
   // Toast notifications state
   const [toasts, setToasts] = useState<ToastType[]>([]);
 
@@ -107,7 +107,7 @@ export default function App() {
     currentRates: Rates
   ) => {
     const val = parseFloat(valueStr);
-    
+
     if (isNaN(val) || val <= 0) {
       return {
         USD: sourceCurrency === 'USD' ? valueStr : '',
@@ -154,13 +154,13 @@ export default function App() {
     try {
       const response = await fetch('/api/rates');
       if (!response.ok) throw new Error('API server returned error');
-      
+
       const data = await response.json();
       if (data.success && data.rates) {
         const newMarketRates = data.rates;
         setMarketRates(newMarketRates);
         setIsOffline(false);
-        
+
         const now = new Date();
         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         setSyncTime(timeStr);
@@ -223,9 +223,9 @@ export default function App() {
     if (tg) {
       tg.ready();
       expand();
-      
+
       document.body.classList.add('telegram-theme');
-      
+
       if (tg.setHeaderColor) {
         tg.setHeaderColor('secondary_bg_color');
       }
