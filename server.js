@@ -37,12 +37,15 @@ async function fetchCBRRates() {
 
   const rubPerUsd = parseValute('USD');
   const rubPerAmd = parseValute('AMD');
+  const rubPerUah = parseValute('UAH');
   const amdPerUsd = rubPerUsd / rubPerAmd;
+  const uahPerUsd = rubPerUsd / rubPerUah;
 
   return {
     USD: 1,
     RUB: parseFloat(rubPerUsd.toFixed(4)),
     AMD: parseFloat(amdPerUsd.toFixed(2)),
+    UAH: parseFloat(uahPerUsd.toFixed(2)),
   };
 }
 
